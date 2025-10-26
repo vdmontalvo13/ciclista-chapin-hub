@@ -52,7 +52,7 @@ const Index = () => {
       </div>
 
       {/* Stats Section */}
-      <div className="container max-w-6xl mx-auto px-4 -mt-12 relative z-10">
+      <div className="container max-w-6xl mx-auto px-4 py-8">
         <div className="grid grid-cols-3 gap-4 mb-8">
           <Card className="bg-gradient-card border-primary/20">
             <CardContent className="p-4 text-center">

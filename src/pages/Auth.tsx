@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Upload } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const Auth = () => {
   const [photoPreview, setPhotoPreview] = useState<string>("");
@@ -39,13 +40,10 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, hsl(188 95% 42%), hsl(142 76% 36%))' }}>
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="space-y-2 text-center">
-          {/* Logo placeholder - will be replaced with actual logo */}
           <div className="flex justify-center mb-2">
-            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-3xl font-bold text-primary">CC</span>
-            </div>
+            <img src={logo} alt="El Ciclista Chapín" className="w-32 h-auto" />
           </div>
-          <CardTitle className="text-2xl font-bold">Ciclista Chapín</CardTitle>
+          <CardTitle className="text-2xl font-bold">El Ciclista Chapín</CardTitle>
           <CardDescription className="text-center">
             Únete a la comunidad de ciclistas guatemaltecos
           </CardDescription>

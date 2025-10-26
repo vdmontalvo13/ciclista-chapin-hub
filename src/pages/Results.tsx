@@ -1,4 +1,5 @@
 import { Trophy, Medal, Award } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
@@ -52,8 +53,9 @@ const Results = () => {
       
       <div className="container max-w-4xl mx-auto p-4 space-y-4">
         {results.map((result) => (
-          <Card key={result.id} className="hover:shadow-hover transition-shadow">
-            <CardContent className="p-4">
+          <Link key={result.id} to={`/result/${result.id}`}>
+            <Card className="hover:shadow-hover transition-shadow cursor-pointer">
+              <CardContent className="p-4">
               <div className="flex items-center gap-4">
                 <div className="flex-shrink-0">
                   {getPositionIcon(result.position)}
@@ -71,8 +73,9 @@ const Results = () => {
                   <p className="text-sm font-mono font-bold">{result.time}</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
         
         {results.length === 0 && (

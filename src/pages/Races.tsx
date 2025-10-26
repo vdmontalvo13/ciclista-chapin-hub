@@ -55,13 +55,17 @@ const mockRaces: Race[] = [
 ];
 
 const Races = () => {
-  const [typeFilter, setTypeFilter] = useState("all");
+  const [eventTypeFilter, setEventTypeFilter] = useState("all");
+  const [disciplineFilter, setDisciplineFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("");
 
   const filteredRaces = mockRaces.filter((race) => {
-    const matchesType = typeFilter === "all" || race.type === typeFilter;
+    const matchesEventType = eventTypeFilter === "all" || race.category === eventTypeFilter;
+    const matchesDiscipline = disciplineFilter === "all" || race.type === disciplineFilter;
     const matchesLocation = locationFilter === "all" || race.location.includes(locationFilter);
-    return matchesType && matchesLocation;
+    const matchesDate = !dateFilter || race.date.includes(dateFilter);
+    return matchesEventType && matchesDiscipline && matchesLocation && matchesDate;
   });
 
   return (
@@ -72,8 +76,10 @@ const Races = () => {
       
       <div className="container max-w-4xl mx-auto p-4 space-y-6">
         <FilterBar
-          onTypeChange={setTypeFilter}
+          onEventTypeChange={setEventTypeFilter}
+          onDisciplineChange={setDisciplineFilter}
           onLocationChange={setLocationFilter}
+          onDateChange={setDateFilter}
         />
         
         <div className="grid gap-4 md:grid-cols-2">

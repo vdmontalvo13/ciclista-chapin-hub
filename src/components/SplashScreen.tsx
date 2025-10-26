@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import logo from "@/assets/logo.png";
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -23,12 +24,8 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       }`}
       style={{ backgroundColor: "#1580b4" }}
     >
-      {/* Logo placeholder - will be replaced with actual logo */}
       <div className="flex flex-col items-center gap-4 animate-scale-in">
-        <div className="w-32 h-32 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm">
-          <span className="text-6xl font-bold text-white">CC</span>
-        </div>
-        <h1 className="text-2xl font-bold text-white">Ciclista Chapín</h1>
+        <img src={logo} alt="El Ciclista Chapín" className="w-64 h-auto" />
       </div>
     </div>
   );

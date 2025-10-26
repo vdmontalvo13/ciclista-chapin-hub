@@ -7,39 +7,67 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 interface FilterBarProps {
-  onTypeChange: (type: string) => void;
+  onEventTypeChange: (type: string) => void;
+  onDisciplineChange: (discipline: string) => void;
   onLocationChange: (location: string) => void;
+  onDateChange: (date: string) => void;
 }
 
-const FilterBar = ({ onTypeChange, onLocationChange }: FilterBarProps) => {
+const FilterBar = ({ onEventTypeChange, onDisciplineChange, onLocationChange, onDateChange }: FilterBarProps) => {
   return (
-    <div className="flex gap-3 items-center p-4 bg-gradient-card rounded-xl border border-border">
-      <Filter className="h-5 w-5 text-primary" />
+    <div className="space-y-3">
+      <div className="flex gap-3 items-center">
+        <Filter className="h-5 w-5 text-primary flex-shrink-0" />
+        <Input 
+          type="date"
+          onChange={(e) => onDateChange(e.target.value)}
+          className="flex-1"
+          placeholder="Fecha"
+        />
+      </div>
       
-      <Select onValueChange={onTypeChange}>
-        <SelectTrigger className="flex-1">
-          <SelectValue placeholder="Tipo de carrera" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todas</SelectItem>
-          <SelectItem value="MTB">MTB</SelectItem>
-          <SelectItem value="Ruta">Ruta</SelectItem>
-        </SelectContent>
-      </Select>
-      
-      <Select onValueChange={onLocationChange}>
-        <SelectTrigger className="flex-1">
-          <SelectValue placeholder="Ubicación" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todas</SelectItem>
-          <SelectItem value="Guatemala">Guatemala</SelectItem>
-          <SelectItem value="Antigua">Antigua</SelectItem>
-          <SelectItem value="Panajachel">Panajachel</SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <Select onValueChange={onEventTypeChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Tipo de evento" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="Travesía">Travesía</SelectItem>
+            <SelectItem value="Carrera">Carrera</SelectItem>
+            <SelectItem value="Colazo">Colazo</SelectItem>
+            <SelectItem value="Travesía y Carrera">Travesía y Carrera</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        <Select onValueChange={onDisciplineChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Disciplina" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="MTB">MTB</SelectItem>
+            <SelectItem value="Ruta">Ruta</SelectItem>
+            <SelectItem value="Gravel">Gravel</SelectItem>
+            <SelectItem value="Urbano">Urbano</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        <Select onValueChange={onLocationChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Ubicación" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="Guatemala">Guatemala</SelectItem>
+            <SelectItem value="Antigua">Antigua</SelectItem>
+            <SelectItem value="Panajachel">Panajachel</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 };
