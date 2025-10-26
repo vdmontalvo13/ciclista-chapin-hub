@@ -36,10 +36,16 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Ciclista Chapín</CardTitle>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, hsl(188 95% 42%), hsl(142 76% 36%))' }}>
+      <Card className="w-full max-w-md shadow-2xl">
+        <CardHeader className="space-y-2 text-center">
+          {/* Logo placeholder - will be replaced with actual logo */}
+          <div className="flex justify-center mb-2">
+            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-3xl font-bold text-primary">CC</span>
+            </div>
+          </div>
+          <CardTitle className="text-2xl font-bold">Ciclista Chapín</CardTitle>
           <CardDescription className="text-center">
             Únete a la comunidad de ciclistas guatemaltecos
           </CardDescription>
