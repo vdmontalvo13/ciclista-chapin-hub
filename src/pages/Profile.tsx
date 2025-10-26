@@ -1,10 +1,15 @@
-import { User, Settings, Trophy, Calendar } from "lucide-react";
+import { User, Settings, Trophy, Calendar, Plus } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 
 const Profile = () => {
+  const navigate = useNavigate();
+  // Mock data - will be replaced with actual user data
+  const isOrganizer = true; // This will come from authentication/user data
+
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-8">
       <div className="bg-gradient-hero p-6 pb-20">
@@ -75,9 +80,16 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        <Button variant="outline" className="w-full">
+        <Button variant="outline" className="w-full" onClick={() => navigate("/edit-profile")}>
           Editar Perfil
         </Button>
+
+        {isOrganizer && (
+          <Button className="w-full" onClick={() => navigate("/create-event")}>
+            <Plus className="h-4 w-4 mr-2" />
+            Crear Nuevo Evento
+          </Button>
+        )}
       </div>
       
       <Navigation />

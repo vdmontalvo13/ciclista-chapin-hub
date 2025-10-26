@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import Races from "./pages/Races";
 import RaceDetail from "./pages/RaceDetail";
 import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
+import CreateEvent from "./pages/CreateEvent";
 import Results from "./pages/Results";
 import ResultDetail from "./pages/ResultDetail";
 import Auth from "./pages/Auth";
@@ -25,6 +27,8 @@ const App = () => (
           <Route path="/races" element={<Races />} />
           <Route path="/race/:id" element={<RaceDetail />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/create-event" element={<CreateEvent />} />
           <Route path="/results" element={<Results />} />
           <Route path="/result/:id" element={<ResultDetail />} />
           <Route path="/auth" element={<Auth />} />

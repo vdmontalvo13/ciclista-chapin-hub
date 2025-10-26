@@ -112,6 +112,34 @@ const RaceDetail = () => {
           </CardContent>
         </Card>
 
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-lg font-bold mb-3">Categorías</h2>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                <span className="font-medium">Juvenil</span>
+                <span className="text-sm text-muted-foreground">15-20 años</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                <span className="font-medium">Master A</span>
+                <span className="text-sm text-muted-foreground">21-30 años</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                <span className="font-medium">Master B</span>
+                <span className="text-sm text-muted-foreground">31-40 años</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                <span className="font-medium">Master C</span>
+                <span className="text-sm text-muted-foreground">41-50 años</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                <span className="font-medium">Master D</span>
+                <span className="text-sm text-muted-foreground">51 en adelante</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Button className="w-full" size="lg">
           Inscribirse Ahora
         </Button>
