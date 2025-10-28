@@ -14,16 +14,323 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      event_categories: {
+        Row: {
+          age_range: string
+          created_at: string | null
+          distance: number | null
+          elevation: number | null
+          event_id: string
+          id: string
+          name: string
+          price: number
+        }
+        Insert: {
+          age_range: string
+          created_at?: string | null
+          distance?: number | null
+          elevation?: number | null
+          event_id: string
+          id?: string
+          name: string
+          price: number
+        }
+        Update: {
+          age_range?: string
+          created_at?: string | null
+          distance?: number | null
+          elevation?: number | null
+          event_id?: string
+          id?: string
+          name?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_categories_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          discipline: Database["public"]["Enums"]["discipline"]
+          event_date: string
+          event_time: string
+          event_type: Database["public"]["Enums"]["event_type"]
+          id: string
+          image_url: string | null
+          is_published: boolean | null
+          location: string
+          organizer_id: string
+          photos_link: string | null
+          registration_link: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          discipline: Database["public"]["Enums"]["discipline"]
+          event_date: string
+          event_time: string
+          event_type: Database["public"]["Enums"]["event_type"]
+          id?: string
+          image_url?: string | null
+          is_published?: boolean | null
+          location: string
+          organizer_id: string
+          photos_link?: string | null
+          registration_link?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          discipline?: Database["public"]["Enums"]["discipline"]
+          event_date?: string
+          event_time?: string
+          event_type?: Database["public"]["Enums"]["event_type"]
+          id?: string
+          image_url?: string | null
+          is_published?: boolean | null
+          location?: string
+          organizer_id?: string
+          photos_link?: string | null
+          registration_link?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          city: string | null
+          created_at: string | null
+          description: string | null
+          email: string
+          full_name: string
+          gender: string | null
+          id: string
+          photo_url: string | null
+          preferred_cycling_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          email: string
+          full_name: string
+          gender?: string | null
+          id: string
+          photo_url?: string | null
+          preferred_cycling_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: string
+          full_name?: string
+          gender?: string | null
+          id?: string
+          photo_url?: string | null
+          preferred_cycling_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      registrations: {
+        Row: {
+          approved_at: string | null
+          category_id: string | null
+          cyclist_id: string
+          event_id: string
+          id: string
+          registered_at: string | null
+          status: Database["public"]["Enums"]["registration_status"] | null
+        }
+        Insert: {
+          approved_at?: string | null
+          category_id?: string | null
+          cyclist_id: string
+          event_id: string
+          id?: string
+          registered_at?: string | null
+          status?: Database["public"]["Enums"]["registration_status"] | null
+        }
+        Update: {
+          approved_at?: string | null
+          category_id?: string | null
+          cyclist_id?: string
+          event_id?: string
+          id?: string
+          registered_at?: string | null
+          status?: Database["public"]["Enums"]["registration_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registrations_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "event_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registrations_cyclist_id_fkey"
+            columns: ["cyclist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      results: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          cyclist_id: string
+          event_id: string
+          id: string
+          notes: string | null
+          position: number | null
+          time: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          cyclist_id: string
+          event_id: string
+          id?: string
+          notes?: string | null
+          position?: number | null
+          time?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          cyclist_id?: string
+          event_id?: string
+          id?: string
+          notes?: string | null
+          position?: number | null
+          time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "results_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "event_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "results_cyclist_id_fkey"
+            columns: ["cyclist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "results_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          id: string
+          requested_at: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          status: Database["public"]["Enums"]["organizer_status"] | null
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          id?: string
+          requested_at?: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          status?: Database["public"]["Enums"]["organizer_status"] | null
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          id?: string
+          requested_at?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: Database["public"]["Enums"]["organizer_status"] | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_roles: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"][]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "super_admin" | "organizer" | "cyclist"
+      discipline: "mtb" | "ruta" | "gravel" | "urbano"
+      event_type: "travesia" | "carrera" | "colazo" | "travesia_y_carrera"
+      organizer_status: "pending" | "approved" | "rejected"
+      registration_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +457,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["super_admin", "organizer", "cyclist"],
+      discipline: ["mtb", "ruta", "gravel", "urbano"],
+      event_type: ["travesia", "carrera", "colazo", "travesia_y_carrera"],
+      organizer_status: ["pending", "approved", "rejected"],
+      registration_status: ["pending", "approved", "rejected"],
+    },
   },
 } as const
