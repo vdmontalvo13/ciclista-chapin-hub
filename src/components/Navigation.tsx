@@ -8,7 +8,7 @@ const Navigation = () => {
   const navItems = [
     { icon: Home, label: "Inicio", path: "/" },
     { icon: Calendar, label: "Carreras", path: "/races" },
-    { icon: Trophy, label: "Resultados", path: "/results" },
+    { icon: Trophy, label: "Mis Carreras", path: "/mis-carreras" },
     { icon: User, label: "Perfil", path: "/profile" },
   ];
 

@@ -9,9 +9,11 @@ import RaceDetail from "./pages/RaceDetail";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import CreateEvent from "./pages/CreateEvent";
-import Results from "./pages/Results";
+import MisCarreras from "./pages/MisCarreras";
 import ResultDetail from "./pages/ResultDetail";
 import Auth from "./pages/Auth";
+import ApproveOrganizers from "./pages/ApproveOrganizers";
+import ManageRegistrations from "./pages/ManageRegistrations";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,9 +31,11 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/create-event" element={<CreateEvent />} />
-          <Route path="/results" element={<Results />} />
+          <Route path="/mis-carreras" element={<MisCarreras />} />
           <Route path="/result/:id" element={<ResultDetail />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/approve-organizers" element={<ApproveOrganizers />} />
+          <Route path="/manage-registrations/:eventId" element={<ManageRegistrations />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Upload } from "lucide-react";
+import { ArrowLeft, Upload, Plus, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,34 +12,193 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+
+interface Category {
+  id?: string;
+  name: string;
+  ageRange: string;
+  price: number;
+  distance: number;
+  elevation: number;
+}
 
 const CreateEvent = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [editingCategoryIndex, setEditingCategoryIndex] = useState<number | null>(null);
+
   const [formData, setFormData] = useState({
     title: "",
     date: "",
     time: "",
     location: "",
-    price: "",
     eventType: "",
     discipline: "",
-    distance: "",
-    elevation: "",
     description: "",
-    categories: [
-      { name: "Juvenil", ageRange: "15-20 años" },
-      { name: "Master A", ageRange: "21-30 años" },
-      { name: "Master B", ageRange: "31-40 años" },
-      { name: "Master C", ageRange: "41-50 años" },
-      { name: "Master D", ageRange: "51 en adelante" },
-    ],
+    registrationLink: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [categories, setCategories] = useState<Category[]>([
+    { name: "Juvenil", ageRange: "15-20 años", price: 100, distance: 40, elevation: 500 },
+    { name: "Master A", ageRange: "21-30 años", price: 150, distance: 60, elevation: 800 },
+    { name: "Master B", ageRange: "31-40 años", price: 150, distance: 60, elevation: 800 },
+    { name: "Master C", ageRange: "41-50 años", price: 150, distance: 50, elevation: 600 },
+    { name: "Master D", ageRange: "51 en adelante", price: 150, distance: 40, elevation: 500 },
+  ]);
+
+  const [categoryForm, setCategoryForm] = useState<Category>({
+    name: "",
+    ageRange: "",
+    price: 0,
+    distance: 0,
+    elevation: 0,
+  });
+
+  const handleOpenCategoryDialog = (index?: number) => {
+    if (index !== undefined) {
+      setEditingCategoryIndex(index);
+      setCategoryForm(categories[index]);
+    } else {
+      setEditingCategoryIndex(null);
+      setCategoryForm({
+        name: "",
+        ageRange: "",
+        price: 0,
+        distance: 0,
+        elevation: 0,
+      });
+    }
+    setShowCategoryDialog(true);
+  };
+
+  const handleSaveCategory = () => {
+    if (!categoryForm.name || !categoryForm.ageRange) {
+      toast({
+        title: "Error",
+        description: "Debes completar el nombre y rango de edad",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (editingCategoryIndex !== null) {
+      const newCategories = [...categories];
+      newCategories[editingCategoryIndex] = categoryForm;
+      setCategories(newCategories);
+      toast({
+        title: "Categoría actualizada",
+        description: "La categoría ha sido actualizada exitosamente",
+      });
+    } else {
+      setCategories([...categories, categoryForm]);
+      toast({
+        title: "Categoría agregada",
+        description: "La categoría ha sido agregada exitosamente",
+      });
+    }
+
+    setShowCategoryDialog(false);
+  };
+
+  const handleDeleteCategory = (index: number) => {
+    const newCategories = categories.filter((_, i) => i !== index);
+    setCategories(newCategories);
+    toast({
+      title: "Categoría eliminada",
+      description: "La categoría ha sido eliminada",
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Evento creado exitosamente");
-    navigate("/profile");
+    
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Debes iniciar sesión para crear un evento",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (categories.length === 0) {
+      toast({
+        title: "Error",
+        description: "Debes agregar al menos una categoría",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Create event
+      const { data: event, error: eventError } = await supabase
+        .from('events')
+        .insert({
+          organizer_id: user.id,
+          title: formData.title,
+          description: formData.description,
+          event_date: formData.date,
+          event_time: formData.time,
+          location: formData.location,
+          event_type: formData.eventType.toLowerCase().replace(' ', '_') as any,
+          discipline: formData.discipline.toLowerCase() as any,
+          registration_link: formData.registrationLink,
+          is_published: true,
+        } as any)
+        .select()
+        .single();
+
+      if (eventError) throw eventError;
+
+      // Create categories
+      const categoryInserts = categories.map(cat => ({
+        event_id: event.id,
+        name: cat.name,
+        age_range: cat.ageRange,
+        price: cat.price,
+        distance: cat.distance,
+        elevation: cat.elevation,
+      }));
+
+      const { error: categoriesError } = await supabase
+        .from('event_categories')
+        .insert(categoryInserts);
+
+      if (categoriesError) throw categoriesError;
+
+      toast({
+        title: "Evento creado",
+        description: "El evento ha sido creado exitosamente",
+      });
+
+      navigate("/profile");
+    } catch (error: any) {
+      console.error('Error creating event:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo crear el evento",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -112,15 +271,16 @@ const CreateEvent = () => {
               <Select
                 value={formData.eventType}
                 onValueChange={(value) => setFormData({ ...formData, eventType: value })}
+                required
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona el tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Travesía">Travesía</SelectItem>
-                  <SelectItem value="Carrera">Carrera</SelectItem>
-                  <SelectItem value="Colazo">Colazo</SelectItem>
-                  <SelectItem value="Travesía y Carrera">Travesía y Carrera</SelectItem>
+                  <SelectItem value="travesia">Travesía</SelectItem>
+                  <SelectItem value="carrera">Carrera</SelectItem>
+                  <SelectItem value="colazo">Colazo</SelectItem>
+                  <SelectItem value="travesia_y_carrera">Travesía y Carrera</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -130,50 +290,33 @@ const CreateEvent = () => {
               <Select
                 value={formData.discipline}
                 onValueChange={(value) => setFormData({ ...formData, discipline: value })}
+                required
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona la disciplina" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="MTB">MTB</SelectItem>
-                  <SelectItem value="Ruta">Ruta</SelectItem>
-                  <SelectItem value="Gravel">Gravel</SelectItem>
-                  <SelectItem value="Urbano">Urbano</SelectItem>
+                  <SelectItem value="mtb">MTB</SelectItem>
+                  <SelectItem value="ruta">Ruta</SelectItem>
+                  <SelectItem value="gravel">Gravel</SelectItem>
+                  <SelectItem value="urbano">Urbano</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="distance">Distancia</Label>
-                <Input
-                  id="distance"
-                  value={formData.distance}
-                  onChange={(e) => setFormData({ ...formData, distance: e.target.value })}
-                  placeholder="Ej: 85km"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="elevation">Elevación</Label>
-                <Input
-                  id="elevation"
-                  value={formData.elevation}
-                  onChange={(e) => setFormData({ ...formData, elevation: e.target.value })}
-                  placeholder="Ej: 1,200m"
-                />
-              </div>
-            </div>
-
             <div className="space-y-2">
-              <Label htmlFor="price">Precio de inscripción</Label>
+              <Label htmlFor="registrationLink">Link de Inscripción</Label>
               <Input
-                id="price"
-                type="number"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                placeholder="Ej: 150"
+                id="registrationLink"
+                type="url"
+                value={formData.registrationLink}
+                onChange={(e) => setFormData({ ...formData, registrationLink: e.target.value })}
+                placeholder="https://..."
+                required
               />
+              <p className="text-xs text-muted-foreground">
+                Este link se mostrará cuando los ciclistas presionen "Inscribirse Ahora"
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -188,15 +331,73 @@ const CreateEvent = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Categorías</Label>
-              <div className="space-y-2 p-4 bg-muted rounded-lg">
-                {formData.categories.map((cat, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <span className="font-medium">{cat.name}</span>
-                    <span className="text-sm text-muted-foreground">{cat.ageRange}</span>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between">
+                <Label>Categorías</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOpenCategoryDialog()}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agregar
+                </Button>
               </div>
+              
+              {categories.length === 0 ? (
+                <Card>
+                  <CardContent className="p-6 text-center text-muted-foreground">
+                    No hay categorías. Agrega al menos una.
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-2">
+                  {categories.map((cat, index) => (
+                    <Card key={index}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <h4 className="font-bold">{cat.name}</h4>
+                            <p className="text-sm text-muted-foreground">{cat.ageRange}</p>
+                            <div className="grid grid-cols-3 gap-2 mt-2 text-sm">
+                              <div>
+                                <span className="text-muted-foreground">Precio:</span>
+                                <p className="font-medium">Q{cat.price}</p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Distancia:</span>
+                                <p className="font-medium">{cat.distance}km</p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Elevación:</span>
+                                <p className="font-medium">{cat.elevation}m</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenCategoryDialog(index)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteCategory(index)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -206,15 +407,96 @@ const CreateEvent = () => {
                 <p className="text-sm text-muted-foreground">
                   Haz clic para subir una imagen o arrastra aquí
                 </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  (Funcionalidad próximamente)
+                </p>
               </div>
             </div>
           </div>
 
-          <Button type="submit" className="w-full" size="lg">
-            Crear Evento
+          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+            {loading ? 'Creando...' : 'Crear Evento'}
           </Button>
         </form>
       </div>
+
+      {/* Category Dialog */}
+      <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingCategoryIndex !== null ? 'Editar' : 'Agregar'} Categoría
+            </DialogTitle>
+            <DialogDescription>
+              Define los detalles de la categoría
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="cat-name">Nombre</Label>
+              <Input
+                id="cat-name"
+                value={categoryForm.name}
+                onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                placeholder="Ej: Master A"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cat-age">Rango de Edad</Label>
+              <Input
+                id="cat-age"
+                value={categoryForm.ageRange}
+                onChange={(e) => setCategoryForm({ ...categoryForm, ageRange: e.target.value })}
+                placeholder="Ej: 21-30 años"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cat-price">Precio (Q)</Label>
+              <Input
+                id="cat-price"
+                type="number"
+                value={categoryForm.price}
+                onChange={(e) => setCategoryForm({ ...categoryForm, price: parseFloat(e.target.value) })}
+                placeholder="150"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cat-distance">Distancia (km)</Label>
+              <Input
+                id="cat-distance"
+                type="number"
+                value={categoryForm.distance}
+                onChange={(e) => setCategoryForm({ ...categoryForm, distance: parseFloat(e.target.value) })}
+                placeholder="60"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cat-elevation">Elevación (m)</Label>
+              <Input
+                id="cat-elevation"
+                type="number"
+                value={categoryForm.elevation}
+                onChange={(e) => setCategoryForm({ ...categoryForm, elevation: parseFloat(e.target.value) })}
+                placeholder="800"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCategoryDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveCategory}>
+              {editingCategoryIndex !== null ? 'Actualizar' : 'Agregar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
