@@ -13,11 +13,16 @@ interface FilterBarProps {
   onEventTypeChange: (type: string) => void;
   onDisciplineChange: (discipline: string) => void;
   onLocationChange: (location: string) => void;
-  onDateChange: (date: string) => void;
+  onDateChange?: (date: string) => void;
   onDateRangeChange?: (startDate: string, endDate: string) => void;
 }
 
-const FilterBar = ({ onEventTypeChange, onDisciplineChange, onLocationChange, onDateChange }: FilterBarProps) => {
+const FilterBar = ({ 
+  onEventTypeChange, 
+  onDisciplineChange, 
+  onLocationChange, 
+  onDateRangeChange 
+}: FilterBarProps) => {
   return (
     <div className="space-y-3">
       <div className="flex gap-3 items-center">
@@ -25,13 +30,18 @@ const FilterBar = ({ onEventTypeChange, onDisciplineChange, onLocationChange, on
         <div className="flex flex-1 gap-2">
           <Input 
             type="date"
-            onChange={(e) => onDateChange(e.target.value)}
+            onChange={(e) => onDateRangeChange && onDateRangeChange(e.target.value, '')}
             className="flex-1"
             placeholder="Fecha inicio"
           />
           <Input 
             type="date"
-            onChange={(e) => onDateChange(e.target.value)}
+            onChange={(e) => {
+              const startInput = e.currentTarget.parentElement?.querySelector('input[type="date"]') as HTMLInputElement;
+              if (startInput && onDateRangeChange) {
+                onDateRangeChange(startInput.value, e.target.value);
+              }
+            }}
             className="flex-1"
             placeholder="Fecha fin"
           />

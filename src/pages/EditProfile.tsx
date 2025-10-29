@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,23 +13,99 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const EditProfile = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    name: "Carlos Méndez",
-    email: "carlos@example.com",
-    description: "Ciclista apasionado por el MTB y las rutas de montaña",
-    city: "Guatemala",
-    cyclingType: "MTB",
-    gender: "Masculino",
+    name: "",
+    email: "",
+    description: "",
+    city: "",
+    cyclingType: "",
+    gender: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success("Perfil actualizado exitosamente");
-    navigate("/profile");
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth');
+    } else {
+      fetchProfile();
+    }
+  }, [user, navigate]);
+
+  const fetchProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user!.id)
+        .single();
+
+      if (error) throw error;
+
+      setFormData({
+        name: data.full_name || "",
+        email: data.email || "",
+        description: data.description || "",
+        city: data.city || "",
+        cyclingType: data.preferred_cycling_type || "",
+        gender: data.gender || "",
+      });
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      toast.error("Error al cargar el perfil");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      toast.error("El nombre es obligatorio");
+      return;
+    }
+
+    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      toast.error("Ingresa un correo electrónico válido");
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: formData.name.trim(),
+          email: formData.email.trim(),
+          description: formData.description.trim(),
+          city: formData.city.trim(),
+          preferred_cycling_type: formData.cyclingType,
+          gender: formData.gender,
+        })
+        .eq('id', user!.id);
+
+      if (error) throw error;
+
+      toast.success("Perfil actualizado exitosamente");
+      navigate("/profile");
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error("Error al actualizar el perfil");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background pb-20 flex items-center justify-center">
+        <p className="text-muted-foreground">Cargando...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -52,16 +128,8 @@ const EditProfile = () => {
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
               <div className="w-24 h-24 rounded-full bg-gradient-primary flex items-center justify-center text-primary-foreground text-3xl font-bold">
-                CM
+                {formData.name ? formData.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
               </div>
-              <Button
-                type="button"
-                size="icon"
-                className="absolute bottom-0 right-0 rounded-full"
-                variant="secondary"
-              >
-                <Camera className="h-4 w-4" />
-              </Button>
             </div>
           </div>
 
