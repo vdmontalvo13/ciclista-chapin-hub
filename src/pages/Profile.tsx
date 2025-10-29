@@ -38,31 +38,28 @@ const Profile = () => {
     if (!authLoading && !user) {
       navigate('/auth');
     } else if (user) {
-      fetchProfile();
-      fetchUpcomingRaces();
-      fetchStats();
+      loadProfileData();
     }
   }, [user, authLoading, navigate]);
 
-  const fetchProfile = async () => {
+  const loadProfileData = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch profile data
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user!.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      setProfile(data);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
-  };
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+      } else if (profileData) {
+        setProfile(profileData);
+      }
 
-  const fetchUpcomingRaces = async () => {
-    try {
+      // Fetch upcoming races
       const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
+      const { data: racesData, error: racesError } = await supabase
         .from('registrations')
         .select('events(id, title, event_date)')
         .eq('cyclist_id', user!.id)
@@ -71,35 +68,35 @@ const Profile = () => {
         .order('events.event_date', { ascending: true })
         .limit(3);
 
-      if (error) throw error;
-      const races = data?.map(r => r.events).filter(Boolean) as UpcomingRace[];
-      setUpcomingRaces(races || []);
-    } catch (error) {
-      console.error('Error fetching upcoming races:', error);
-    }
-  };
+      if (racesError) {
+        console.error('Error fetching upcoming races:', racesError);
+      } else {
+        const races = racesData?.map(r => r.events).filter(Boolean) as UpcomingRace[];
+        setUpcomingRaces(races || []);
+      }
 
-  const fetchStats = async () => {
-    try {
-      const { data, error } = await supabase
+      // Fetch stats
+      const { data: statsData, error: statsError } = await supabase
         .from('registrations')
         .select('event_id, events(event_date)')
         .eq('cyclist_id', user!.id)
         .eq('status', 'approved');
 
-      if (error) throw error;
+      if (statsError) {
+        console.error('Error fetching stats:', statsError);
+      } else {
+        const total = statsData?.length || 0;
+        const now = new Date();
+        const thisMonth = statsData?.filter(r => {
+          const eventDate = new Date(r.events?.event_date || '');
+          return eventDate.getMonth() === now.getMonth() && 
+                 eventDate.getFullYear() === now.getFullYear();
+        }).length || 0;
 
-      const total = data?.length || 0;
-      const now = new Date();
-      const thisMonth = data?.filter(r => {
-        const eventDate = new Date(r.events?.event_date || '');
-        return eventDate.getMonth() === now.getMonth() && 
-               eventDate.getFullYear() === now.getFullYear();
-      }).length || 0;
-
-      setStats({ totalRaces: total, thisMonth });
+        setStats({ totalRaces: total, thisMonth });
+      }
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      console.error('Error loading profile data:', error);
     } finally {
       setLoading(false);
     }
@@ -114,13 +111,27 @@ const Profile = () => {
       .slice(0, 2);
   };
 
-  if (authLoading || roleLoading || loading || !profile) {
+  if (authLoading || roleLoading || loading) {
     return (
       <div className="min-h-screen bg-background pb-20 md:pb-8 flex items-center justify-center">
         <p className="text-muted-foreground">Cargando...</p>
       </div>
     );
   }
+
+  if (!user) {
+    return null;
+  }
+
+  // Default profile data if not loaded
+  const displayProfile = profile || {
+    full_name: user.email?.split('@')[0] || 'Usuario',
+    email: user.email || '',
+    photo_url: null,
+    city: '',
+    preferred_cycling_type: 'Ciclista',
+    description: '',
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-8">
@@ -139,11 +150,11 @@ const Profile = () => {
         
         <div className="flex flex-col items-center -mb-16">
           <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
-            <AvatarImage src={profile.photo_url || undefined} />
-            <AvatarFallback>{getInitials(profile.full_name)}</AvatarFallback>
+            <AvatarImage src={displayProfile.photo_url || undefined} />
+            <AvatarFallback>{getInitials(displayProfile.full_name)}</AvatarFallback>
           </Avatar>
-          <h2 className="mt-3 text-xl font-bold text-primary-foreground">{profile.full_name}</h2>
-          <p className="text-primary-foreground/80">{profile.preferred_cycling_type || 'Ciclista'}</p>
+          <h2 className="mt-3 text-xl font-bold text-primary-foreground">{displayProfile.full_name}</h2>
+          <p className="text-primary-foreground/80">{displayProfile.preferred_cycling_type || 'Ciclista'}</p>
           <div className="flex gap-2 mt-2">
             {isSuperAdmin && <Badge className="bg-yellow-500">Super Admin</Badge>}
             {isOrganizer && <Badge className="bg-blue-500">Organizador</Badge>}
@@ -173,17 +184,17 @@ const Profile = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <User className="h-6 w-6 text-accent mx-auto mb-2" />
-              <p className="text-2xl font-bold">{profile.city || 'N/A'}</p>
+              <p className="text-2xl font-bold">{displayProfile.city || 'N/A'}</p>
               <p className="text-xs text-muted-foreground">Ciudad</p>
             </CardContent>
           </Card>
         </div>
 
-        {profile.description && (
+        {displayProfile.description && (
           <Card>
             <CardContent className="p-6">
               <h3 className="font-bold mb-2">Sobre mí</h3>
-              <p className="text-muted-foreground">{profile.description}</p>
+              <p className="text-muted-foreground">{displayProfile.description}</p>
             </CardContent>
           </Card>
         )}
