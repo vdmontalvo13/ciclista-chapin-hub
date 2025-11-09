@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Camera } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -30,19 +31,21 @@ const EditProfile = () => {
   });
 
   useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-    } else {
+    if (user) {
       fetchProfile();
+    } else {
+      setLoading(false);
     }
-  }, [user, navigate]);
+  }, [user]);
 
   const fetchProfile = async () => {
+    if (!user?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user!.id)
+        .eq('id', user.id)
         .single();
 
       if (error) throw error;
@@ -103,6 +106,38 @@ const EditProfile = () => {
     return (
       <div className="min-h-screen bg-background pb-20 flex items-center justify-center">
         <p className="text-muted-foreground">Cargando...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <div className="sticky top-0 z-10 bg-gradient-hero p-4 shadow-lg">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/")}
+              className="text-primary-foreground hover:bg-white/20"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-2xl font-bold text-primary-foreground">Editar Perfil</h1>
+          </div>
+        </div>
+        <div className="container max-w-2xl mx-auto p-4">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-muted-foreground mb-4">
+                Inicia sesión para editar tu perfil
+              </p>
+              <Button onClick={() => navigate('/auth')}>
+                Iniciar Sesión
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

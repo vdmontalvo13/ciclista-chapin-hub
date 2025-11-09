@@ -3,6 +3,7 @@ import { Trophy, Calendar as CalendarIcon, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,6 +28,8 @@ const MisCarreras = () => {
   useEffect(() => {
     if (user) {
       fetchMyRaces();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
@@ -107,7 +110,20 @@ const MisCarreras = () => {
       </div>
       
       <div className="container max-w-4xl mx-auto p-4">
-        {loading ? (
+        {!user ? (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-muted-foreground mb-4">
+                Inicia sesión para ver tus carreras
+              </p>
+              <Link to="/auth">
+                <Button>
+                  Iniciar Sesión
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        ) : loading ? (
           <p className="text-center text-muted-foreground">Cargando...</p>
         ) : (
           <Tabs defaultValue="upcoming" className="w-full">

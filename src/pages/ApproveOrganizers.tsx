@@ -29,13 +29,12 @@ const ApproveOrganizers = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isSuperAdmin) {
-      navigate('/');
-      return;
+    if (isSuperAdmin) {
+      fetchPendingRequests();
+    } else {
+      setLoading(false);
     }
-
-    fetchPendingRequests();
-  }, [isSuperAdmin, navigate]);
+  }, [isSuperAdmin]);
 
   const fetchPendingRequests = async () => {
     try {
@@ -162,7 +161,15 @@ const ApproveOrganizers = () => {
       </div>
 
       <div className="container max-w-2xl mx-auto p-4">
-        {loading ? (
+        {!isSuperAdmin ? (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-muted-foreground">
+                No tienes permisos para acceder a esta página
+              </p>
+            </CardContent>
+          </Card>
+        ) : loading ? (
           <p className="text-center text-muted-foreground">Cargando...</p>
         ) : requests.length === 0 ? (
           <Card>

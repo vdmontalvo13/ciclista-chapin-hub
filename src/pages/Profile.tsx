@@ -35,12 +35,12 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    } else if (user) {
+    if (user) {
       loadProfileData();
+    } else {
+      setLoading(false);
     }
-  }, [user, authLoading, navigate]);
+  }, [user]);
 
   const loadProfileData = async () => {
     if (!user?.id) return;
@@ -130,7 +130,7 @@ const Profile = () => {
       .slice(0, 2);
   };
 
-  if (authLoading || roleLoading || loading) {
+  if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen bg-background pb-20 md:pb-8 flex items-center justify-center">
         <p className="text-muted-foreground">Cargando...</p>
@@ -138,14 +138,10 @@ const Profile = () => {
     );
   }
 
-  if (!user) {
-    return null;
-  }
-
   // Default profile data if not loaded
   const displayProfile = profile || {
-    full_name: user.email?.split('@')[0] || 'Usuario',
-    email: user.email || '',
+    full_name: user?.email?.split('@')[0] || 'Usuario',
+    email: user?.email || '',
     photo_url: null,
     city: '',
     preferred_cycling_type: 'Ciclista',
@@ -154,7 +150,28 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-8">
-      <div className="bg-gradient-hero p-6 pb-20">
+      {!user ? (
+        <>
+          <div className="sticky top-0 z-10 bg-gradient-hero p-4 shadow-lg">
+            <h1 className="text-2xl font-bold text-primary-foreground">Perfil</h1>
+          </div>
+          <div className="container max-w-4xl mx-auto p-4">
+            <Card>
+              <CardContent className="p-6 text-center">
+                <p className="text-muted-foreground mb-4">
+                  Inicia sesión para ver tu perfil
+                </p>
+                <Button onClick={() => navigate('/auth')}>
+                  Iniciar Sesión
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+          <Navigation />
+        </>
+      ) : (
+        <>
+          <div className="bg-gradient-hero p-6 pb-20">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-primary-foreground">Perfil</h1>
           <Button 
@@ -266,6 +283,8 @@ const Profile = () => {
       </div>
       
       <Navigation />
+        </>
+      )}
     </div>
   );
 };

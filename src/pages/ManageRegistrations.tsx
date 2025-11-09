@@ -37,16 +37,13 @@ const ManageRegistrations = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isOrganizer) {
-      navigate('/');
-      return;
-    }
-
-    if (eventId) {
+    if (isOrganizer && eventId) {
       fetchEventDetails();
       fetchRegistrations();
+    } else {
+      setLoading(false);
     }
-  }, [isOrganizer, eventId, navigate]);
+  }, [isOrganizer, eventId]);
 
   const fetchEventDetails = async () => {
     try {
@@ -253,7 +250,15 @@ const ManageRegistrations = () => {
       </div>
 
       <div className="container max-w-2xl mx-auto p-4">
-        {loading ? (
+        {!isOrganizer ? (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-muted-foreground">
+                No tienes permisos para acceder a esta página
+              </p>
+            </CardContent>
+          </Card>
+        ) : loading ? (
           <p className="text-center text-muted-foreground">Cargando...</p>
         ) : (
           <Tabs defaultValue="pending" className="w-full">
