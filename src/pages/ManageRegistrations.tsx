@@ -65,29 +65,51 @@ const ManageRegistrations = () => {
 
   const fetchRegistrations = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: regsData, error: regsError } = await supabase
         .from('registrations')
-        .select(`
-          id,
-          cyclist_id,
-          status,
-          registered_at,
-          profiles!registrations_cyclist_id_fkey (
-            full_name,
-            email,
-            photo_url,
-            city
-          ),
-          event_categories!registrations_category_id_fkey (
-            name,
-            age_range
-          )
-        `)
+        .select('id, cyclist_id, category_id, status, registered_at')
         .eq('event_id', eventId!)
         .order('registered_at', { ascending: false });
 
-      if (error) throw error;
-      setRegistrations(data || []);
+      if (regsError) throw regsError;
+
+      if (!regsData || regsData.length === 0) {
+        setRegistrations([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch profiles separately
+      const cyclistIds = regsData.map(r => r.cyclist_id);
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, photo_url, city')
+        .in('id', cyclistIds);
+
+      // Fetch categories separately
+      const categoryIds = regsData.map(r => r.category_id).filter(Boolean);
+      const { data: categoriesData } = await supabase
+        .from('event_categories')
+        .select('id, name, age_range')
+        .in('id', categoryIds);
+
+      // Combine the data
+      const combined = regsData.map(reg => {
+        const profile = profilesData?.find(p => p.id === reg.cyclist_id);
+        const category = categoriesData?.find(c => c.id === reg.category_id);
+        return {
+          ...reg,
+          profiles: profile || {
+            full_name: 'Usuario',
+            email: '',
+            photo_url: null,
+            city: ''
+          },
+          event_categories: category || null
+        };
+      });
+
+      setRegistrations(combined as Registration[]);
     } catch (error) {
       console.error('Error fetching registrations:', error);
       toast({

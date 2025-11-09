@@ -39,25 +39,45 @@ const ApproveOrganizers = () => {
 
   const fetchPendingRequests = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
-        .select(`
-          id,
-          user_id,
-          requested_at,
-          profiles!user_roles_user_id_fkey (
-            full_name,
-            email,
-            photo_url,
-            city
-          )
-        `)
+        .select('id, user_id, requested_at')
         .eq('role', 'organizer')
         .eq('status', 'pending')
         .order('requested_at', { ascending: true });
 
-      if (error) throw error;
-      setRequests(data || []);
+      if (rolesError) throw rolesError;
+
+      if (!rolesData || rolesData.length === 0) {
+        setRequests([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch profiles separately
+      const userIds = rolesData.map(r => r.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, photo_url, city')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const combined = rolesData.map(role => {
+        const profile = profilesData?.find(p => p.id === role.user_id);
+        return {
+          ...role,
+          profiles: profile || {
+            full_name: 'Usuario',
+            email: '',
+            photo_url: null,
+            city: ''
+          }
+        };
+      });
+
+      setRequests(combined as OrganizerRequest[]);
     } catch (error) {
       console.error('Error fetching requests:', error);
       toast({
