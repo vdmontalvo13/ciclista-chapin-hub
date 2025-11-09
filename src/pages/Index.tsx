@@ -53,20 +53,25 @@ const Index = () => {
     try {
       const today = new Date().toISOString().split('T')[0];
       
+      // Total published events from today onwards
       const { count: eventsCount } = await supabase
         .from('events')
         .select('*', { count: 'exact', head: true })
         .eq('is_published', true)
         .gte('event_date', today);
 
+      // Total cyclists - count users with cyclist role (auto-approved)
       const { count: cyclistsCount } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
+        .from('user_roles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'cyclist');
 
+      // Unique locations from published events
       const { data: locationsData } = await supabase
         .from('events')
         .select('location')
-        .eq('is_published', true);
+        .eq('is_published', true)
+        .gte('event_date', today);
 
       const uniqueLocations = new Set(locationsData?.map(e => e.location) || []).size;
 

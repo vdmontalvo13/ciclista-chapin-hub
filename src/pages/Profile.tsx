@@ -43,12 +43,14 @@ const Profile = () => {
   }, [user, authLoading, navigate]);
 
   const loadProfileData = async () => {
+    if (!user?.id) return;
+    
     try {
       // Fetch profile data
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user!.id)
+        .eq('id', user.id)
         .maybeSingle();
 
       if (profileError) {
@@ -57,29 +59,46 @@ const Profile = () => {
         setProfile(profileData);
       }
 
-      // Fetch upcoming races
+      // Fetch upcoming races - fixed query
       const today = new Date().toISOString().split('T')[0];
       const { data: racesData, error: racesError } = await supabase
         .from('registrations')
-        .select('events(id, title, event_date)')
-        .eq('cyclist_id', user!.id)
-        .eq('status', 'approved')
-        .gte('events.event_date', today)
-        .order('events.event_date', { ascending: true })
-        .limit(3);
+        .select(`
+          events!registrations_event_id_fkey (
+            id,
+            title,
+            event_date
+          )
+        `)
+        .eq('cyclist_id', user.id)
+        .eq('status', 'approved');
 
       if (racesError) {
         console.error('Error fetching upcoming races:', racesError);
       } else {
-        const races = racesData?.map(r => r.events).filter(Boolean) as UpcomingRace[];
+        const races = racesData
+          ?.map(r => r.events)
+          .filter((e): e is UpcomingRace => 
+            e !== null && 
+            new Date(e.event_date) >= new Date(today)
+          )
+          .sort((a, b) => 
+            new Date(a.event_date).getTime() - new Date(b.event_date).getTime()
+          )
+          .slice(0, 3);
         setUpcomingRaces(races || []);
       }
 
       // Fetch stats
       const { data: statsData, error: statsError } = await supabase
         .from('registrations')
-        .select('event_id, events(event_date)')
-        .eq('cyclist_id', user!.id)
+        .select(`
+          event_id,
+          events!registrations_event_id_fkey (
+            event_date
+          )
+        `)
+        .eq('cyclist_id', user.id)
         .eq('status', 'approved');
 
       if (statsError) {
